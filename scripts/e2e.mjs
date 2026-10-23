@@ -145,6 +145,20 @@ async function open(page, url) {
 }
 
 // ---------------------------------------------------------------- escenarios
+const overlaps = (a, b) => a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
+
+async function checkCredit(page, others, viewport, where) {
+  const credit = page.getByTestId('brand-credit');
+  assert(await credit.isVisible(), `${where}: la firma no se ve`);
+  assert((await credit.textContent()).includes('by Código Austral · 2026'), `${where}: texto de la firma`);
+  const c = await credit.boundingBox();
+  assert(c.x >= 0 && c.y >= 0 && c.x + c.width <= viewport.width && c.y + c.height <= viewport.height, `${where}: la firma se sale de la pantalla`);
+  for (const [name, loc] of others) {
+    const b = await loc.boundingBox();
+    assert(!overlaps(c, b), `${where}: la firma se superpone con ${name}`);
+  }
+}
+
 async function main() {
   const { child, url } = await startPreview();
   const browser = await chromium.launch({ executablePath: findChromium(), args: ['--no-sandbox'] });
@@ -193,6 +207,7 @@ async function main() {
         const nums = (await stored(page)).draws.map((d) => d.number);
         eq(new Set(nums).size, 10, 'números únicos');
         assert((await page.getByTestId('remaining-count').textContent()) === '80', 'restantes 80');
+        await checkCredit(page, [['el botón SACAR NÚMERO', drawBtn(page)], ['el número actual', page.getByTestId('current-number')]], MOBILE, 'móvil principal');
         await shot(page, 'main');
       });
       await step('móvil: tablero con 3 estados', async () => {
@@ -225,6 +240,7 @@ async function main() {
         assert(n.width >= MOBILE.width * 0.6, `número del proyector de ${n.width}px`);
         assert(!(await nav(page, 'Ajustes').isVisible().catch(() => false)), 'la barra de pestañas sigue visible');
         assert((await page.getByTestId('projector-count').textContent()).includes('Sorteados 10 de 90'), 'contador');
+        await checkCredit(page, [['el número', page.getByTestId('projector-number')], ['el tablero', page.getByTestId('projector').getByTestId('board')]], MOBILE, 'proyector vertical');
         await shot(page, 'projector');
         await page.keyboard.press('Escape');
         await page.getByTestId('projector').waitFor({ state: 'detached' });
@@ -274,6 +290,7 @@ async function main() {
         assert(board.x > n.x + n.width - 5, 'el tablero debería quedar a la derecha del número');
         assert(board.y + board.height <= LANDSCAPE.height + 1, 'el tablero se sale de la pantalla');
         eq(await page.getByRole('list', { name: 'Últimos números' }).locator('li').count(), 8, 'últimos 8');
+        await checkCredit(page, [['el número', page.getByTestId('projector-number')], ['el tablero', projBoard]], LANDSCAPE, 'proyector horizontal');
         await shot(page, 'projector-landscape');
       });
       await step('proyector: atajo de teclado Espacio saca un número', async () => {

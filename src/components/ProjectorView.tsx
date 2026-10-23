@@ -3,6 +3,7 @@ import { Dices, X } from 'lucide-react';
 import type { GameState, GameStatus } from '../types/bingo';
 import { Ball } from './Ball';
 import { NumberBoard } from './NumberBoard';
+import { BrandCredit } from './BrandCredit';
 
 interface Props {
   game: GameState;
@@ -36,7 +37,7 @@ export function ProjectorView({ game, status, current, total, animations, busy, 
     <div
       data-testid="projector"
       aria-label="Modo proyector"
-      className="projector-root fixed inset-0 z-30 flex flex-col gap-[2vmin] bg-night-900 p-[2.5vmin] text-white landscape:flex-row"
+      className="projector-root fixed inset-0 z-30 flex flex-col gap-[2vmin] bg-night-900 p-[2.5vmin] pb-[calc(2.5vmin+24px)] text-white landscape:flex-row"
     >
       <section className="flex min-h-0 flex-col items-center justify-center gap-[1.6vmin] landscape:w-[42%]">
         <div className="flex w-full items-center justify-between gap-2">
@@ -90,6 +91,7 @@ export function ProjectorView({ game, status, current, total, animations, busy, 
       <section className="min-h-0 flex-1 rounded-2xl bg-night-800 p-[1.6vmin]">
         <NumberBoard range={game.range} draws={game.draws} compact />
       </section>
+      <BrandCredit variant="dark" className="pointer-events-none absolute bottom-[0.8vmin] right-[2.5vmin] leading-5" />
     </div>
   );
 }

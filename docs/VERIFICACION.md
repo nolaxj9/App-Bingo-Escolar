@@ -68,3 +68,11 @@ Mismo recorrido de 58 comprobaciones sirviendo `dist/` con `wrangler dev` 4.148.
 - El sonido Web Audio no se verificó auditivamente (solo que no genera errores).
 - No se probó la publicación en GitHub Pages, Netlify ni Cloudflare Pages; las instrucciones de `docs/USO.md` son las del procedimiento estándar de cada servicio.
 - No se hicieron pruebas de accesibilidad con lector de pantalla; solo se usaron roles/etiquetas ARIA verificados por las pruebas de Testing Library y Playwright.
+
+## Firma "by Código Austral · 2026" (23/10/2026)
+Resultados reales de esta corrida:
+- `npx vitest run`: `Test Files 7 passed (7)`, `Tests 110 passed (110)` (nueva prueba: la firma aparece en la pantalla principal y en el proyector; el texto del historial termina con "Bingo Escolar · by Código Austral 2026").
+- `npx tsc --noEmit`: sin errores. `npm run build`: correcto.
+- `npm run e2e`: **58/58 PASS**; `npm run e2e:cloudflare`: **58/58 PASS**. Dentro del recorrido se verifica que la firma sea visible y que su caja no se superponga con el botón SACAR NÚMERO / número actual (móvil 390x844) ni con el número y el tablero (proyector vertical y horizontal 844x390).
+- Capturas regeneradas y revisadas a mano: `main.png`, `main-320.png`, `projector.png`, `projector-landscape.png`. En 320x568 la firma se oculta a propósito (alturas menores a 600 px) para no empujar el botón; en 390x844 se ve.
+- No se midió el contraste de la firma con una herramienta; se usa ink al 60 % sobre crema y blanco al 50 % sobre fondo oscuro (estimado, no verificado).

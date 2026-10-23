@@ -5,6 +5,7 @@ import { validateRange } from '../services/bingoEngine';
 import type { UseSpeech } from '../hooks/useSpeech';
 import { useOfflineReady } from '../registerSW';
 import { version } from '../../package.json';
+import { BRAND } from '../services/brand';
 import { Toggle } from './Toggle';
 import { VoiceControls } from './VoiceControls';
 
@@ -97,6 +98,10 @@ export function SettingsPanel({ settings, update, speech, range, drawnCount, onA
         </p>
         <p className="mt-1 text-sm text-slate-600">Bingo Escolar · versión {version}</p>
       </section>
+
+      <p data-testid="about" className="pb-2 text-center text-sm text-slate-600">
+        Acerca de: Bingo Escolar v{version} — hecho por {BRAND.author} · {BRAND.year}
+      </p>
     </div>
   );
 }

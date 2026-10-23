@@ -21,6 +21,7 @@ Aplicación web **sin conexión** (PWA) para sacar los números del bingo en el 
 - **Modo proyector**: número gigante, últimos 8 números, tablero completo y contador, sobre fondo oscuro, sin controles secundarios; vertical y horizontal. Se abre con el botón o con la URL `#proyector`.
 - **Autoguardado** en `localStorage` y recuperación al recargar. Un aviso claro si el dispositivo no permite guardar (modo incógnito, cuota llena). Actualizar la app nunca borra una partida guardada.
 - **Sin Internet**: manifiesto, service worker propio y caché de todos los archivos; se instala como app en Android, iPhone y escritorio.
+- **Firma**: "by Código Austral · 2026" discreta en la pantalla principal, el modo proyector (esquina inferior), Ajustes ("Acerca de") y al final del historial copiado; sale de una sola constante en `src/services/brand.ts`.
 - **Ajustes**: rango (cambiarlo con una partida en curso pide confirmación porque empieza una nueva), voz, sonidos, animaciones, modo proyector y estado "Lista para usar sin Internet".
 - **Pruebas automatizadas**: unitarias (Vitest + Testing Library) y recorrido completo en Chromium real con Playwright, incluido el modo sin conexión.
 

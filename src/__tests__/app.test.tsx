@@ -163,6 +163,11 @@ describe('App: flujo principal', () => {
     expect(count('drawn-count')).toBe('0');
   });
 
+  it('la firma by Código Austral aparece en la pantalla principal', () => {
+    setup();
+    expect(screen.getByTestId('brand-credit')).toHaveTextContent('by Código Austral · 2026');
+  });
+
   it('modo proyector: se abre, muestra el número y sale con Escape', async () => {
     localStorage.setItem(
       GAME_KEY,
@@ -173,6 +178,7 @@ describe('App: flujo principal', () => {
     const proj = screen.getByTestId('projector');
     expect(within(proj).getByTestId('projector-number').dataset.number).toBe('42');
     expect(within(proj).getByTestId('projector-count')).toHaveTextContent('Sorteados 1 de 90');
+    expect(within(proj).getByTestId('brand-credit')).toHaveTextContent('by Código Austral · 2026');
     expect(window.location.hash).toBe('#proyector');
     await user.keyboard('{Escape}');
     expect(screen.queryByTestId('projector')).not.toBeInTheDocument();

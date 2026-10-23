@@ -1,4 +1,5 @@
 import type { GameState } from '../types/bingo';
+import { BRAND } from './brand';
 
 export function formatTime(at: number): string {
   return new Date(at).toLocaleTimeString('es-AR', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -21,6 +22,7 @@ export function buildHistoryText(game: GameState, now = Date.now()): string {
   if (game.draws.length === 0) lines.push('Todavía no salió ningún número.');
   game.draws.forEach((d, i) => lines.push(`${i + 1}. ${d.number} (${formatTime(d.at)})`));
   if (game.draws.length > 0) lines.push('', `Orden de salida: ${game.draws.map((d) => d.number).join(', ')}`);
+  lines.push('', `Bingo Escolar · by ${BRAND.author} ${BRAND.year}`);
   return lines.join('\n');
 }
 

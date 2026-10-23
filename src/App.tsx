@@ -19,6 +19,7 @@ import { SettingsPanel } from './components/SettingsPanel';
 import { ProjectorView } from './components/ProjectorView';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import { Ball } from './components/Ball';
+import { BrandCredit } from './components/BrandCredit';
 
 type Pending = { kind: 'undo' } | { kind: 'reset' } | { kind: 'range'; range: NumberRange } | null;
 
@@ -174,6 +175,7 @@ export function App() {
               <RotateCcw className="h-5 w-5" aria-hidden="true" /> Nueva partida
             </button>
           </div>
+          <BrandCredit variant="light" className="[@media(max-height:600px)]:hidden" />
         </div>
       </div>
       <div className="hidden lg:block">

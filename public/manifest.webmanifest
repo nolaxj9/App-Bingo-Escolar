@@ -1,7 +1,7 @@
 {
   "name": "Bingo Escolar",
   "short_name": "Bingo",
-  "description": "Sacá los números del bingo en el aula, sin Internet.",
+  "description": "Sacá los números del bingo en el aula, sin Internet — by Código Austral.",
   "lang": "es-AR",
   "dir": "ltr",
   "display": "standalone",

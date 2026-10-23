@@ -19,9 +19,12 @@ describe('historyText', () => {
     expect(text).toContain('1. 42 (10:31:02)');
     expect(text).toContain('2. 7 (10:31:20)');
     expect(text).toContain('Orden de salida: 42, 7');
+    expect(text.split('\n').at(-1)).toBe('Bingo Escolar · by Código Austral 2026');
   });
   it('sin sorteos lo dice', () => {
-    expect(buildHistoryText(createGame())).toContain('Todavía no salió ningún número.');
+    const t = buildHistoryText(createGame());
+    expect(t).toContain('Todavía no salió ningún número.');
+    expect(t.endsWith('Bingo Escolar · by Código Austral 2026')).toBe(true);
   });
   it('formatTime usa HH:MM:SS', () => {
     expect(formatTime(new Date(2026, 0, 1, 9, 5, 3).getTime())).toBe('09:05:03');
