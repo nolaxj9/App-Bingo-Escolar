@@ -10,6 +10,9 @@
     "test": "vitest run",
     "lint": "tsc --noEmit",
     "e2e": "node scripts/e2e.mjs",
+    "e2e:cloudflare": "E2E_SERVER=cloudflare node scripts/e2e.mjs",
+    "cf:dev": "npm run build && wrangler dev",
+    "cf:deploy": "npm run build && wrangler deploy",
     "icons": "node scripts/generate-icons.mjs"
   },
   "dependencies": {
@@ -34,6 +37,7 @@
     "tailwindcss": "3.4.19",
     "typescript": "5.6.3",
     "vite": "8.3.5",
-    "vitest": "5.0.5"
+    "vitest": "5.0.5",
+    "wrangler": "4.148.0"
   }
 }

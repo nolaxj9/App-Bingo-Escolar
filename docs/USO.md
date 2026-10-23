@@ -75,9 +75,34 @@ Botón con el ícono de pantalla (arriba a la derecha) o **Ajustes → Abrir mod
 2. Build command: `npm run build`. Publish directory: `dist`.
 3. Alternativa sin Git: arrastrá la carpeta `dist/` a https://app.netlify.com/drop.
 
-### Cloudflare Pages
-1. "Workers & Pages → Create → Pages → Connect to Git".
-2. Framework preset: ninguno. Build command: `npm run build`. Build output directory: `dist`.
+### Cloudflare (recomendado)
+El repositorio ya trae todo lo que Cloudflare necesita:
+- `wrangler.jsonc`: publica `dist/` como sitio estático (Workers con archivos estáticos), sin código de servidor.
+- `public/_headers` (se copia a `dist/`): cabeceras de seguridad (CSP, nosniff, sin iframes) y caché: `assets/` inmutable; `index.html`, `sw.js` y el manifiesto siempre se revisan, así una versión nueva llega en la próxima visita con Internet.
+- El service worker no lista `index.html` (Cloudflare lo redirige a `/`), solo `./`.
+
+Hay tres formas; elegí una.
+
+**A. Subir la carpeta desde el panel (sin instalar nada más)**
+1. En tu PC: `npm ci` y `npm run build` (o usá el zip `bingo-escolar-web-lista.zip` ya armado, descomprimido).
+2. Entrá a https://dash.cloudflare.com → **Workers y Pages** → **Crear** → pestaña **Pages** → **Subir recursos** (Upload assets / "Use direct upload").
+3. Nombre del proyecto: `bingo-escolar` → **Crear proyecto**.
+4. Arrastrá el **contenido** de la carpeta `dist/` (que se vea `index.html` en la raíz, no una carpeta `dist` adentro) → **Implementar sitio**.
+5. Te da una dirección `https://bingo-escolar.pages.dev` (o parecida), ya con HTTPS.
+Para publicar una versión nueva: **Crear implementación nueva** en el mismo proyecto y volver a arrastrar `dist/`.
+
+**B. Desde la terminal con Wrangler**
+```bash
+npm ci
+npx wrangler login        # abre el navegador para autorizar tu cuenta (una sola vez)
+npm run cf:deploy         # = npm run build && wrangler deploy
+```
+Publica en `https://bingo-escolar.<tu-subdominio>.workers.dev`. Para probar antes con el mismo motor de Cloudflare: `npm run cf:dev` (abre `http://localhost:8787`).
+
+**C. Conectado a GitHub (se publica solo en cada cambio)**
+Subí el repositorio a GitHub → en el panel: **Workers y Pages** → **Crear** → **Pages** → **Conectar a Git** → elegí el repositorio → Framework: *Ninguno* · Comando de compilación: `npm run build` · Directorio de salida: `dist` → **Guardar e implementar**.
+
+**Dominio propio (opcional):** en el proyecto → **Dominios personalizados** → agregá por ejemplo `bingo.tuescuela.edu.ar`.
 
 ### Docker (servidor propio)
 ```bash

@@ -65,12 +65,18 @@ async function startPreview() {
     if (r.status !== 0) throw new Error('falló el build');
   }
   const port = await freePort();
-  const child = spawn(process.execPath, [join(root, 'node_modules', 'vite', 'bin', 'vite.js'), 'preview', '--host', '127.0.0.1', '--port', String(port), '--strictPort'], {
+  // E2E_SERVER=cloudflare sirve dist/ con `wrangler dev` (mismo motor que Cloudflare, aplica _headers).
+  const cloudflare = process.env.E2E_SERVER === 'cloudflare';
+  const args = cloudflare
+    ? [join(root, 'node_modules', 'wrangler', 'bin', 'wrangler.js'), 'dev', '--ip', '127.0.0.1', '--port', String(port)]
+    : [join(root, 'node_modules', 'vite', 'bin', 'vite.js'), 'preview', '--host', '127.0.0.1', '--port', String(port), '--strictPort'];
+  const child = spawn(process.execPath, args, {
     cwd: root,
     stdio: ['ignore', 'pipe', 'pipe'],
+    env: { ...process.env, WRANGLER_SEND_METRICS: 'false' },
   });
   const url = `http://127.0.0.1:${port}/`;
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 600; i++) {
     try {
       const r = await fetch(url);
       if (r.ok) return { child, url };
@@ -80,7 +86,7 @@ async function startPreview() {
     await sleep(100);
   }
   child.kill();
-  throw new Error('vite preview no arrancó');
+  throw new Error(`${cloudflare ? 'wrangler dev' : 'vite preview'} no arrancó`);
 }
 
 // ---------------------------------------------------------------- helpers de página

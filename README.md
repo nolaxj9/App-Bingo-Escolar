@@ -59,6 +59,9 @@ Todos se ejecutan desde la raíz del repositorio.
 | `npm test` | Vitest (unitarias y de componentes). |
 | `npm run lint` | Chequeo de tipos (`tsc --noEmit`). |
 | `npm run e2e` / `make e2e` | Recorrido completo en Chromium contra `vite preview` (arranca y apaga el servidor solo), con capturas en `docs/screenshots/`. Sale con código distinto de cero si algo falla. |
+| `npm run e2e:cloudflare` | El mismo recorrido, pero sirviendo `dist/` con `wrangler dev` (motor de Cloudflare, aplica `_headers`). |
+| `npm run cf:dev` | Build + `wrangler dev`: la app como la serviría Cloudflare, en `http://localhost:8787`. |
+| `npm run cf:deploy` | Build + `wrangler deploy` a Cloudflare (antes, una vez: `npx wrangler login`). Ver [docs/USO.md](docs/USO.md#cloudflare-recomendado). |
 | `npm run icons` / `make icons` | Regenera los PNG de `public/icons/` a partir de `icon.svg` con Chromium. |
 | `./scripts/test.sh` / `make test` | Vitest + tsc + build, con resumen y código de salida; con `--e2e` suma el recorrido en Chromium. |
 | `make docker` / `make docker-run` | Construye la imagen (nginx sin privilegios) y la ejecuta en `http://localhost:8080`. |

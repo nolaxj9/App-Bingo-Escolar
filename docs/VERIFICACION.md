@@ -46,6 +46,14 @@ Contra `vite preview` en un puerto libre (el script lo arranca y lo apaga). Resu
 
 Capturas generadas en `docs/screenshots/`: `main`, `board`, `history`, `settings`, `projector` (vertical), `projector-landscape`, `desktop`, `finished`, `main-320`, `board-320`, `storage-warning`, `offline`. Se revisaron a mano a 320, 390 px, escritorio y proyector; se corrigieron: botones del proyector que tapaban el tablero, contraste del botón "SORTEO TERMINADO", textos que se partían en 320 px y la insignia "Último" del historial.
 
+## Cloudflare (`npm run e2e:cloudflare`, 23/10/2026)
+Mismo recorrido de 58 comprobaciones sirviendo `dist/` con `wrangler dev` 4.148.0 (motor local de Cloudflare):
+- Primera corrida: **54/58**. Fallaba el uso sin conexión (`net::ERR_FAILED` al recargar sin red): Cloudflare redirige `/index.html` a `/`, el service worker guardaba esa respuesta redirigida y el navegador no la acepta para una navegación.
+- Corrección: el service worker ya no guarda `index.html` (solo `./`), limpia cualquier respuesta redirigida antes de usarla y no intenta guardar `_headers`.
+- Segunda corrida: **58/58 PASS** con Cloudflare y **58/58 PASS** con `vite preview`.
+- `curl -I` contra `wrangler dev`: `/` devuelve CSP, `x-frame-options: DENY`, `nosniff`, `referrer-policy` y `Cache-Control: no-cache`; `/sw.js` con `no-cache`; una ruta inexistente devuelve la app (200, SPA).
+- No se publicó en una cuenta real de Cloudflare (no hay credenciales en este entorno).
+
 ## Iconos
 `npm run icons` generó `icon-192.png`, `icon-512.png`, `icon-maskable-512.png` y `apple-touch-icon.png` desde `public/icons/icon.svg` con el Chromium del sistema; los PNG están versionados.
 
