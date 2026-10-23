@@ -4,6 +4,8 @@ import { isValidGameState } from './bingoEngine';
 export const GAME_KEY = 'bingo-escolar:game';
 export const SETTINGS_KEY = 'bingo-escolar:settings';
 export const CURRENT_SCHEMA = 1;
+/** Una partida válida ocupa < 20 KB; más que esto no se copia entero. */
+const MAX_BACKUP_CHARS = 100_000;
 
 export type StorageError = 'unavailable' | 'quota' | 'corrupt' | 'unsupported';
 
@@ -73,8 +75,10 @@ export function loadGame(): LoadGameResult {
   if (isValidGameState(migrated)) return { game: migrated, error: null };
 
   // Dañado: se conserva una copia del valor crudo para no perder nada.
+  // Solo la más reciente, para que copias repetidas no llenen el almacenamiento.
   try {
-    localStorage.setItem(`${GAME_KEY}:corrupt-${Date.now()}`, text);
+    for (const k of Object.keys(localStorage)) if (k.startsWith(`${GAME_KEY}:corrupt-`)) localStorage.removeItem(k);
+    localStorage.setItem(`${GAME_KEY}:corrupt-${Date.now()}`, text.slice(0, MAX_BACKUP_CHARS));
   } catch {
     /* sin lugar para la copia: se sigue igual */
   }

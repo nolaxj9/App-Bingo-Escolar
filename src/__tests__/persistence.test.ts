@@ -3,7 +3,7 @@ import {
   clearGame, DEFAULT_SETTINGS, GAME_KEY, isStorageAvailable, loadGame, loadSettings, sanitizeSettings,
   saveGame, saveSettings, SETTINGS_KEY, storageErrorMessage,
 } from '../services/persistence';
-import { createGame, drawNumber } from '../services/bingoEngine';
+import { createGame, drawNumber, isValidGameState } from '../services/bingoEngine';
 
 function played() {
   const r = drawNumber(createGame());
@@ -37,6 +37,43 @@ describe('persistencia de la partida', () => {
     const copies = Object.keys(localStorage).filter((k) => k.startsWith(`${GAME_KEY}:corrupt-`));
     expect(copies).toHaveLength(1);
     expect(localStorage.getItem(copies[0])).toBe('{no es json');
+  });
+
+  it('cargas dañadas repetidas: queda una sola copia y con tamaño acotado', () => {
+    const now = vi.spyOn(Date, 'now');
+    for (let i = 0; i < 5; i++) {
+      now.mockReturnValue(1000 + i);
+      localStorage.setItem(GAME_KEY, 'x'.repeat(200_000));
+      expect(loadGame().error).toBe('corrupt');
+    }
+    now.mockRestore();
+    const copies = Object.keys(localStorage).filter((k) => k.startsWith(`${GAME_KEY}:corrupt-`));
+    expect(copies).toEqual([`${GAME_KEY}:corrupt-1004`]);
+    expect(localStorage.getItem(copies[0])!.length).toBe(100_000);
+  });
+
+  it('valores con tipos o números raros se rechazan (NaN, Infinity, decimales, fuera de rango)', () => {
+    const base = { schema: 1, range: { min: 1, max: 90 }, draws: [{ number: 3, at: 1 }], startedAt: 1 };
+    const cases = [
+      { ...base, startedAt: 'ayer' },
+      { ...base, draws: [{ number: 3.5, at: 1 }] },
+      { ...base, draws: [{ number: 91, at: 1 }] },
+      { ...base, draws: [{ number: '3', at: 1 }] },
+      { ...base, range: { min: 1, max: 100000 } },
+      { ...base, draws: [{ number: 3, at: null }] },
+      { ...base, draws: 'muchos' },
+    ];
+    for (const c of cases) {
+      localStorage.setItem(GAME_KEY, JSON.stringify(c));
+      expect(loadGame().game).toBeNull();
+    }
+    // Un "__proto__" dentro del JSON guardado no contamina los objetos de la app.
+    localStorage.setItem(GAME_KEY, JSON.stringify(base).replace('{', '{"__proto__":{"contaminado":true},'));
+    loadGame();
+    expect(({} as Record<string, unknown>).contaminado).toBeUndefined();
+    // JSON no admite NaN/Infinity: se prueba directo contra el validador.
+    expect(isValidGameState({ ...base, startedAt: Number.POSITIVE_INFINITY })).toBe(false);
+    expect(isValidGameState({ ...base, draws: [{ number: 3, at: Number.NaN }] })).toBe(false);
   });
 
   it('JSON válido pero partida inconsistente (repetidos): corrupt', () => {

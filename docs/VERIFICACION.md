@@ -76,3 +76,6 @@ Resultados reales de esta corrida:
 - `npm run e2e`: **58/58 PASS**; `npm run e2e:cloudflare`: **58/58 PASS**. Dentro del recorrido se verifica que la firma sea visible y que su caja no se superponga con el botón SACAR NÚMERO / número actual (móvil 390x844) ni con el número y el tablero (proyector vertical y horizontal 844x390).
 - Capturas regeneradas y revisadas a mano: `main.png`, `main-320.png`, `projector.png`, `projector-landscape.png`. En 320x568 la firma se oculta a propósito (alturas menores a 600 px) para no empujar el botón; en 390x844 se ve.
 - No se midió el contraste de la firma con una herramienta; se usa ink al 60 % sobre crema y blanco al 50 % sobre fondo oscuro (estimado, no verificado).
+
+## Revisión de seguridad (23/10/2026)
+Detalle en [SECURITY.md](SECURITY.md). Ejecutado: `npm audit` antes 6 (3 altas, 3 moderadas, solo desarrollo) y después **0**; `npx vitest run` **112 passed**; `npx tsc --noEmit` sin errores; `npm run e2e:cloudflare` **58/58 PASS** y `npm run e2e` **58/58 PASS** con las cabeceras nuevas; sondeo en Chromium contra `wrangler dev`: script inyectado, `fetch` externo, imagen externa e iframe de otro sitio bloqueados.

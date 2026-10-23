@@ -107,7 +107,7 @@ export function isValidGameState(value: unknown): value is GameState {
   const v = value as Partial<GameState>;
   if (v.schema !== 1 || !v.range || !Array.isArray(v.draws)) return false;
   if (validateRange(v.range) !== null) return false;
-  if (v.startedAt !== null && typeof v.startedAt !== 'number') return false;
+  if (v.startedAt !== null && (typeof v.startedAt !== 'number' || !Number.isFinite(v.startedAt))) return false;
   const seen = new Set<number>();
   for (const d of v.draws) {
     if (!d || typeof d !== 'object') return false;

@@ -96,6 +96,7 @@ bingo-escolar/
 - [docs/USO.md](docs/USO.md): cómo correrla, probarla desde el celular, instalarla, usarla sin Internet, modo proyector y publicarla.
 - [docs/VERIFICACION.md](docs/VERIFICACION.md): qué se ejecutó y qué resultados se observaron.
 - [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md): errores frecuentes y soluciones.
+- [docs/SECURITY.md](docs/SECURITY.md): modelo de amenazas, controles, resultados de la revisión de seguridad y riesgos residuales.
 
 ## Limitaciones
 
