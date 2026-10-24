@@ -98,7 +98,7 @@ export function useSpeech(options: SpeechOptions): UseSpeech {
     (n: number) => {
       if (!opts.current.enabled) return;
       const repeat = opts.current.repeatDigits ?? true;
-      speak(announcementText(n, repeat), repeat ? 0.9 : 0.95);
+      speak(announcementText(n, repeat));
     },
     [speak],
   );
