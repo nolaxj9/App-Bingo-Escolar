@@ -74,6 +74,8 @@ self.addEventListener('fetch', (event) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
+  // La API nunca se cachea ni se intercepta.
+  if (url.pathname.startsWith('/api/')) return;
   if (req.mode === 'navigate') {
     // Navegación: red primero; sin red, abre la copia guardada de la app.
     event.respondWith(
@@ -101,6 +103,6 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test-setup.ts'],
     css: false,
-    include: ['src/**/*.test.{ts,tsx}'],
+    include: ['src/**/*.test.{ts,tsx}', 'worker/**/*.test.ts'],
   },
 });

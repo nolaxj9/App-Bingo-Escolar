@@ -1,9 +1,11 @@
 import { useEffect } from 'react';
-import { Dices, X } from 'lucide-react';
+import { Dices, KeyRound, X } from 'lucide-react';
 import type { GameState, GameStatus } from '../types/bingo';
 import { Ball } from './Ball';
 import { NumberBoard } from './NumberBoard';
 import { BrandCredit } from './BrandCredit';
+import { DemoInsignia } from './DemoAviso';
+import { DEMO_MAX_BOLILLAS } from '../shared/licencia';
 
 interface Props {
   game: GameState;
@@ -12,12 +14,17 @@ interface Props {
   total: number;
   animations: boolean;
   busy: boolean;
+  /** Versión demo: se muestra el cartel "DEMO". */
+  demo?: boolean;
+  /** Se llegó al límite de la demo: el botón de sacar pasa a "Activar". */
+  limiteDemo?: boolean;
   onDraw: () => void;
+  onActivar?: () => void;
   onExit: () => void;
 }
 
 /** Pantalla para proyectar: número gigante, últimos números y tablero; sin controles secundarios. */
-export function ProjectorView({ game, status, current, total, animations, busy, onDraw, onExit }: Props) {
+export function ProjectorView({ game, status, current, total, animations, busy, demo = false, limiteDemo = false, onDraw, onActivar, onExit }: Props) {
   const drawn = game.draws.length;
   const previous = game.draws.slice(-9, -1).reverse();
 
@@ -53,14 +60,14 @@ export function ProjectorView({ game, status, current, total, animations, busy, 
           <p className="font-display text-[clamp(18px,3.6vmin,44px)] font-extrabold tracking-wide text-accent-400">Bingo Escolar</p>
           <button
             type="button"
-            onClick={onDraw}
+            onClick={limiteDemo ? onActivar : onDraw}
             disabled={status === 'finished'}
             aria-disabled={busy}
-            aria-label="Sacar un número"
-            title="Sacar número (Espacio)"
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white opacity-80 hover:opacity-100 focus-visible:opacity-100 disabled:bg-slate-600"
+            aria-label={limiteDemo ? 'Activar acceso completo' : 'Sacar un número'}
+            title={limiteDemo ? 'Activar acceso completo' : 'Sacar número (Espacio)'}
+            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full opacity-80 hover:opacity-100 focus-visible:opacity-100 disabled:bg-slate-600 ${limiteDemo ? 'bg-accent-400 text-ink' : 'bg-brand-600 text-white'}`}
           >
-            <Dices className="h-6 w-6" aria-hidden="true" />
+            {limiteDemo ? <KeyRound className="h-6 w-6" aria-hidden="true" /> : <Dices className="h-6 w-6" aria-hidden="true" />}
           </button>
         </div>
         {current === null ? (
@@ -78,6 +85,12 @@ export function ProjectorView({ game, status, current, total, animations, busy, 
         <p className="font-display text-[clamp(18px,4vmin,52px)] font-extrabold num" data-testid="projector-count">
           {status === 'finished' ? '¡Sorteo terminado!' : `Sorteados ${drawn} de ${total}`}
         </p>
+        {demo && (
+          <p className="flex items-center gap-2 text-[clamp(14px,2.4vmin,28px)] font-bold text-white/80" data-testid="projector-demo">
+            <DemoInsignia />
+            {limiteDemo ? `Límite de ${DEMO_MAX_BOLILLAS} bolillas` : 'Versión de prueba'}
+          </p>
+        )}
         {previous.length > 0 && (
           <ul className="flex flex-wrap justify-center gap-[1vmin]" aria-label="Últimos números">
             {previous.map((d) => (
