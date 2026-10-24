@@ -25,7 +25,7 @@ export function NuevaLicencia({ onCrear }: Props) {
     const a = monto.trim() === '' ? null : entero(monto);
     if (entidad.trim() === '') return setError('Escribí el nombre de la entidad.');
     if (d === null || d < 1 || d > 3650) return setError('Los días tienen que ser un número entre 1 y 3650.');
-    if (m === null || m < 1 || m > 50) return setError('Los dispositivos tienen que ser un número entre 1 y 50.');
+    if (m === null || m < 1 || m > 20) return setError('Los dispositivos tienen que ser un número entre 1 y 20.');
     if (monto.trim() !== '' && a === null) return setError('El monto tiene que ser un número entero en pesos.');
     setError(null);
     setEnviando(true);

@@ -20,10 +20,12 @@ export function DemoAviso({ restantes, onActivar }: Props) {
           ? `Versión demo: te ${restantes === 1 ? 'queda 1 bolilla' : `quedan ${restantes} bolillas`}`
           : `Versión demo: llegaste al límite de ${DEMO_MAX_BOLILLAS} bolillas`}
       </span>
-      <span aria-hidden="true">·</span>
-      <button type="button" onClick={onActivar} className="min-h-[48px] px-1 font-extrabold text-brand-800 underline underline-offset-2">
-        Activar
-      </button>
+      {/* En el límite el botón grande ya dice "Activar acceso completo": no se repite acá. */}
+      {restantes > 0 && (
+        <button type="button" onClick={onActivar} className="min-h-[48px] px-1 font-extrabold text-brand-800 underline underline-offset-2">
+          Activar
+        </button>
+      )}
     </p>
   );
 }

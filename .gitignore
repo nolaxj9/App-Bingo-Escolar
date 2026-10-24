@@ -7,3 +7,4 @@ coverage
 .vite
 .wrangler
 .dev.vars
+dist-e2e

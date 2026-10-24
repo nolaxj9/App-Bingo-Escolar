@@ -79,3 +79,25 @@ Resultados reales de esta corrida:
 
 ## Revisión de seguridad (23/10/2026)
 Detalle en [SECURITY.md](SECURITY.md). Ejecutado: `npm audit` antes 6 (3 altas, 3 moderadas, solo desarrollo) y después **0**; `npx vitest run` **112 passed**; `npx tsc --noEmit` sin errores; `npm run e2e:cloudflare` **58/58 PASS** y `npm run e2e` **58/58 PASS** con las cabeceras nuevas; sondeo en Chromium contra `wrangler dev`: script inyectado, `fetch` externo, imagen externa e iframe de otro sitio bloqueados.
+
+## Acceso pago: e2e con demo, activación y panel (24/10/2026)
+`scripts/e2e.mjs` prepara todo solo: genera un par de claves ECDSA P-256 de **prueba**, compila la app en `dist-e2e/` con `VITE_LICENSE_PUBLIC_KEY=<pública de prueba>` (en `.gitignore`; `dist/` no se toca) y sirve ese directorio. En modo cloudflare escribe en una carpeta temporal un `wrangler.json` (copia de `wrangler.jsonc` con `assets.directory` → `dist-e2e` y un `database_id` falso) y un `.dev.vars` con `LICENSE_PRIVATE_KEY` de prueba y `ADMIN_PASSWORD` al azar; la D1 local va en `--persist-to <temp>/state`, así cada corrida arranca vacía. Nunca se escribe en el `.dev.vars` del repo. Al final avisa que `dist-e2e/` es un build de prueba.
+
+Acceso completo en los pasos existentes (más de 15 números): con `vite preview` el script firma un permiso con la clave de prueba y lo siembra (`bingo-escolar:dispositivo` + `bingo-escolar:permiso`); en cloudflare crea por la API de administración una licencia "Escuela E2E" (20 dispositivos), activa un dispositivo desde Node con `/api/activar` y siembra el permiso real firmado por el Worker (así `/api/renovar` responde 200). Con `vite preview` no hay `/api`: la renovación recibe 404 y la app conserva el acceso (comprobado: solo 403/410 lo quitan). Esos 404 de `/api/` se filtran de la comprobación de consola (solo ellos).
+
+Resultados: `npm run e2e` **64/64 PASS**; `npm run e2e:cloudflare` **78/78 PASS** (dos corridas seguidas de cada uno). `npx vitest run`: 12 archivos, **259 passed**; `npx tsc --noEmit` sin errores.
+
+| Escenario (pasos nuevos) | Modo | Comprobaciones (todas PASS) |
+|---|---|---|
+| Demo | ambos | sin permiso: aviso de demo; tras 15 bolillas el botón de sacar desaparece y queda "Activar acceso completo"; Enter/Espacio/clic no sacan la 16; en el proyector se ve el cartel DEMO y Espacio no sortea; deshacer devuelve el sorteo; sin errores de consola |
+| Panel `/admin` | cloudflare | contraseña incorrecta muestra "Contraseña incorrecta." y la correcta entra; ajustes guardados (precio 5000, texto de cómo comprar, WhatsApp 5491100000000); crear "Escuela de prueba" muestra el código con formato `XXXX-XXXX-XXXX` y la licencia queda "activa" |
+| `/admin/` | cloudflare | redirige a `/admin` y carga el panel |
+| Activación | cloudflare | en demo, "Cómo comprar" muestra el precio, el texto y el botón de WhatsApp con el número; un código inexistente da "No encontramos ese código"; el código real en minúsculas y con espacios activa y avisa con el nombre de la entidad; se sortea más de 15; Ajustes dice "Acceso completo · Escuela de prueba" |
+| Sin conexión tras activar | cloudflare | con el service worker listo y `setOffline(true)`, recargar mantiene el acceso completo (se sortea más de 15); una pestaña nueva sin conexión también |
+| Límite de dispositivos | cloudflare | licencia de 1 dispositivo: se activa en el contexto A; en el B aparece "ya se usó en 1 dispositivo" |
+| Revocación | cloudflare | se revoca desde el panel; recargar el contexto A (con Internet) vuelve a demo y borra el permiso guardado |
+| Sin errores de consola | cloudflare | los 4xx esperados de `/api/` (401 de login, 404 de código, 409 de límite, 403 de revocación) se ignoran solo en estos escenarios |
+
+Capturas nuevas en `docs/screenshots/`: `demo-limite`, `demo-proyector`, `admin-panel` (móvil), `admin-codigo`, `activacion`, `activacion-limite`, `acceso-completo`. No se revisaron a mano una por una. Las capturas anteriores se regeneraron con acceso completo.
+
+Problema encontrado y corregido: el formulario "Nueva licencia" del panel aceptaba hasta 50 dispositivos pero el Worker rechaza más de 20 (`datos_invalidos`); se alineó el panel a 1–20 (`src/admin/NuevaLicencia.tsx`).

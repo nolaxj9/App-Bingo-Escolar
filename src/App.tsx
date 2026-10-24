@@ -186,7 +186,7 @@ export function App() {
             <button
               type="button"
               onClick={abrirActivacion}
-              className="flex min-h-[76px] w-full items-center justify-center gap-3 whitespace-nowrap rounded-[28px] bg-accent-400 px-4 font-display text-xl font-extrabold uppercase tracking-wide text-ink shadow-lift transition duration-150 hover:bg-accent-500 active:scale-[0.97] min-[360px]:text-2xl"
+              className="flex min-h-[76px] w-full items-center justify-center gap-3 rounded-[28px] bg-accent-400 px-4 py-2 text-center font-display text-xl font-extrabold uppercase leading-tight tracking-wide text-ink shadow-lift transition duration-150 hover:bg-accent-500 active:scale-[0.97] min-[420px]:text-2xl"
             >
               <KeyRound className="h-8 w-8 shrink-0" aria-hidden="true" />
               Activar acceso completo
