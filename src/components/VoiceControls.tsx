@@ -58,6 +58,12 @@ export function VoiceControls({ settings, update, speech }: Props) {
               No encontramos voces en español en este dispositivo. Se usa la voz predeterminada; puede sonar con otro acento.
             </p>
           )}
+          <Toggle
+            label="Repetir cifra por cifra"
+            hint="Ej.: «treinta y seis… tres, seis»"
+            checked={settings.repeatDigits}
+            onChange={(v) => update({ repeatDigits: v })}
+          />
           <button type="button" onClick={speech.test} className="btn-secondary self-start">
             <Volume2 className="h-5 w-5" aria-hidden="true" /> Probar voz
           </button>

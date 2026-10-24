@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { numberToWords } from '../services/numberToWords';
+import { announcementText, numberToWords } from '../services/numberToWords';
 
 describe('numberToWords', () => {
   it.each([
@@ -18,5 +18,23 @@ describe('numberToWords', () => {
   });
   it('cubre 1..90 sin vacíos ni guiones', () => {
     for (let n = 1; n <= 90; n++) expect(numberToWords(n)).toMatch(/^[a-záéíóú]+( y [a-záéíóú]+)?$/);
+  });
+});
+
+describe('announcementText', () => {
+  it.each([
+    [7, '¡Salió el número siete! El siete solo.'],
+    [10, '¡Salió el número diez! Uno, cero.'],
+    [36, '¡Salió el número treinta y seis! Tres, seis.'],
+    [42, '¡Salió el número cuarenta y dos! Cuatro, dos.'],
+    [90, '¡Salió el número noventa! Nueve, cero.'],
+    [100, '¡Salió el número cien! Uno, cero, cero.'],
+    [105, '¡Salió el número ciento cinco! Uno, cero, cinco.'],
+  ])('%i con repetición', (n, text) => {
+    expect(announcementText(n, true)).toBe(text);
+  });
+  it('sin repetición devuelve solo la frase original', () => {
+    expect(announcementText(42, false)).toBe('¡Salió el número cuarenta y dos!');
+    expect(announcementText(7, false)).toBe('¡Salió el número siete!');
   });
 });

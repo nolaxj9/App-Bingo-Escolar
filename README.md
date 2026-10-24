@@ -16,7 +16,7 @@ Aplicación web **sin conexión** (PWA) para sacar los números del bingo en el 
 - **Tablero** con tres estados (disponible, sorteado, último), responsive, cómodo en celulares de 320 px.
 - **Historial** con orden, hora y último destacado; se actualiza solo; **copiar** al portapapeles y **compartir** si el dispositivo lo permite.
 - **Deshacer** el último número (con confirmación) y **nueva partida** (con confirmación que explica qué se borra).
-- **Voz** con SpeechSynthesis ("¡Salió el número cuarenta y dos!"): se activa o desactiva, volumen, elección de voz en español si hay, botón "Probar voz". Nunca frena el sorteo y no rompe si el navegador no la soporta.
+- **Voz** con SpeechSynthesis ("¡Salió el número cuarenta y dos!"): se activa o desactiva, volumen, elección de voz en español si hay, botón "Probar voz". Repite el número cifra por cifra, como un cantor de bingo ("treinta y seis… tres, seis"), y se puede apagar en Ajustes. Nunca frena el sorteo y no rompe si el navegador no la soporta.
 - **Sonidos** sintetizados con Web Audio (sin archivos) y **animación** de la bolilla, ambos opcionales; respeta `prefers-reduced-motion`.
 - **Modo proyector**: número gigante, últimos 8 números, tablero completo y contador, sobre fondo oscuro, sin controles secundarios; vertical y horizontal. Se abre con el botón o con la URL `#proyector`.
 - **Autoguardado** en `localStorage` y recuperación al recargar. Un aviso claro si el dispositivo no permite guardar (modo incógnito, cuota llena). Actualizar la app nunca borra una partida guardada.

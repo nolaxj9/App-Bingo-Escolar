@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { numberToWords } from '../services/numberToWords';
+import { announcementText } from '../services/numberToWords';
 
 export interface SpeechOptions {
   enabled: boolean;
   volume: number;
   voiceURI: string | null;
+  repeatDigits?: boolean;
 }
 
 export interface UseSpeech {
@@ -74,7 +75,7 @@ export function useSpeech(options: SpeechOptions): UseSpeech {
     };
   }, [supported]);
 
-  const speak = useCallback((text: string) => {
+  const speak = useCallback((text: string, rate = 0.95) => {
     if (!isSupported()) return;
     try {
       const synth = window.speechSynthesis;
@@ -85,7 +86,7 @@ export function useSpeech(options: SpeechOptions): UseSpeech {
       if (chosen) u.voice = chosen;
       u.lang = chosen ? chosen.lang : 'es-AR';
       u.volume = Math.min(1, Math.max(0, opts.current.volume));
-      u.rate = 0.95;
+      u.rate = rate;
       u.onerror = () => {};
       synth.speak(u);
     } catch {
@@ -96,7 +97,8 @@ export function useSpeech(options: SpeechOptions): UseSpeech {
   const announce = useCallback(
     (n: number) => {
       if (!opts.current.enabled) return;
-      speak(`¡Salió el número ${numberToWords(n)}!`);
+      const repeat = opts.current.repeatDigits ?? true;
+      speak(announcementText(n, repeat), repeat ? 0.9 : 0.95);
     },
     [speak],
   );

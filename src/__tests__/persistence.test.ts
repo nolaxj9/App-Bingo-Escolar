@@ -124,7 +124,7 @@ describe('persistencia de la partida', () => {
 
 describe('ajustes', () => {
   it('por defecto: voz, sonido y animaciones activados, volumen 1', () => {
-    expect(loadSettings()).toEqual({ schema: 1, voiceEnabled: true, voiceVolume: 1, voiceURI: null, soundEnabled: true, animationsEnabled: true });
+    expect(loadSettings()).toEqual({ schema: 1, voiceEnabled: true, voiceVolume: 1, voiceURI: null, repeatDigits: true, soundEnabled: true, animationsEnabled: true });
   });
   it('ida y vuelta', () => {
     const s = { ...DEFAULT_SETTINGS, voiceEnabled: false, voiceVolume: 0.4, voiceURI: 'x', soundEnabled: false };
@@ -137,6 +137,9 @@ describe('ajustes', () => {
     expect(sanitizeSettings({ voiceVolume: -2 }).voiceVolume).toBe(0);
     expect(sanitizeSettings({ voiceVolume: NaN }).voiceVolume).toBe(1);
     expect(sanitizeSettings(null)).toEqual(DEFAULT_SETTINGS);
+    expect(sanitizeSettings({ voiceEnabled: false, voiceVolume: 0.5 }).repeatDigits).toBe(true);
+    expect(sanitizeSettings({ repeatDigits: false }).repeatDigits).toBe(false);
+    expect(sanitizeSettings({ repeatDigits: 'no' }).repeatDigits).toBe(true);
   });
   it('JSON roto de ajustes: vuelve a los valores por defecto', () => {
     localStorage.setItem(SETTINGS_KEY, '}{');

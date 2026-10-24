@@ -47,7 +47,7 @@ describe('useSpeech', () => {
     const env = install([voice('Inglés', 'en-US'), voice('España', 'es-ES'), voice('Argentina', 'es-AR')]);
     const { result } = renderHook(() => useSpeech({ enabled: true, volume: 0.5, voiceURI: null }));
     act(() => result.current.announce(42));
-    expect(env.spoken[0]).toMatchObject({ text: '¡Salió el número cuarenta y dos!', lang: 'es-AR', volume: 0.5 });
+    expect(env.spoken[0]).toMatchObject({ text: '¡Salió el número cuarenta y dos! Cuatro, dos.', lang: 'es-AR', volume: 0.5 });
     expect((env.spoken[0].voice as SpeechSynthesisVoice).name).toBe('Argentina');
     expect(env.synth.cancel).toHaveBeenCalled();
   });

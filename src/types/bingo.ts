@@ -28,6 +28,7 @@ export interface Settings {
   voiceEnabled: boolean;
   voiceVolume: number; // 0..1
   voiceURI: string | null; // voz elegida; null = automática
+  repeatDigits: boolean; // repetir el número cifra por cifra
   soundEnabled: boolean;
   animationsEnabled: boolean;
 }

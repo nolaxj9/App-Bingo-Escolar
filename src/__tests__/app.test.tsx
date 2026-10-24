@@ -186,13 +186,38 @@ describe('App: flujo principal', () => {
   });
 });
 
+/** Partida donde el único número que falta es el 36 (rango 27..36 con 27..35 ya sorteados). */
+const only36 = () => ({
+  schema: 1,
+  range: { min: 27, max: 36 },
+  draws: Array.from({ length: 9 }, (_, i) => ({ number: 27 + i, at: i + 1 })),
+  startedAt: 1,
+});
+
 describe('App: voz', () => {
   it('con la voz activada anuncia el número en palabras', async () => {
     installSpeech();
     const user = setup();
     await draw(user);
     expect(spoken).toHaveLength(1);
-    expect(spoken[0]).toMatch(/^¡Salió el número [a-záéíóú ]+!$/);
+    expect(spoken[0]).toMatch(/^¡Salió el número [a-záéíóú ]+! [A-ZÁÉÍÓÚ][a-záéíóú, ]+\.$/);
+  });
+
+  it('al salir el 36 dice el número y lo repite cifra por cifra', async () => {
+    installSpeech();
+    localStorage.setItem(GAME_KEY, JSON.stringify(only36()));
+    const user = setup();
+    await draw(user);
+    expect(spoken).toEqual(['¡Salió el número treinta y seis! Tres, seis.']);
+  });
+
+  it('con "repetir cifra por cifra" apagado dice solo el número', async () => {
+    installSpeech();
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ repeatDigits: false }));
+    localStorage.setItem(GAME_KEY, JSON.stringify(only36()));
+    const user = setup();
+    await draw(user);
+    expect(spoken).toEqual(['¡Salió el número treinta y seis!']);
   });
 
   it('con la voz desactivada no llama a speechSynthesis', async () => {

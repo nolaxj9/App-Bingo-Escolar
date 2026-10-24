@@ -14,6 +14,7 @@ export const DEFAULT_SETTINGS: Settings = {
   voiceEnabled: true,
   voiceVolume: 1,
   voiceURI: null,
+  repeatDigits: true,
   soundEnabled: true,
   animationsEnabled: true,
 };
@@ -114,6 +115,7 @@ export function sanitizeSettings(raw: unknown): Settings {
     voiceEnabled: bool(r.voiceEnabled, DEFAULT_SETTINGS.voiceEnabled),
     voiceVolume: Math.min(1, Math.max(0, vol)),
     voiceURI: typeof r.voiceURI === 'string' && r.voiceURI.length < 500 ? r.voiceURI : null,
+    repeatDigits: bool(r.repeatDigits, DEFAULT_SETTINGS.repeatDigits),
     soundEnabled: bool(r.soundEnabled, DEFAULT_SETTINGS.soundEnabled),
     animationsEnabled: bool(r.animationsEnabled, DEFAULT_SETTINGS.animationsEnabled),
   };

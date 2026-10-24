@@ -479,7 +479,7 @@ async function main() {
       await drawBtn(page).click();
       await page.waitForFunction(() => window.__spoken.length === 1);
       const text = await page.evaluate(() => window.__spoken[0]);
-      assert(/^¡Salió el número [a-záéíóú ]+!$/.test(text), `texto hablado inesperado: ${text}`);
+      assert(/^¡Salió el número [a-záéíóú ]+! [A-ZÁÉÍÓÚ][a-záéíóú, ]+\.$/.test(text), `texto hablado inesperado: ${text}`);
     });
     await scenario('voz desactivada', { viewport: MOBILE, fast: false, init: speechMock }, async (page) => {
       await open(page, url);

@@ -46,7 +46,7 @@ Conviene probarlo en el aula **antes** del día de uso: poné el celular en modo
 
 ## 5. Jugar
 
-- **SACAR NÚMERO** saca un número que todavía no salió. Se muestra en la bolilla grande y se lee en voz alta (si está activada).
+- **SACAR NÚMERO** saca un número que todavía no salió. Se muestra en la bolilla grande y se lee en voz alta (si está activada). Por defecto la voz lo repite cifra por cifra ("¡Salió el número treinta y seis! Tres, seis."); en Ajustes, "Repetir cifra por cifra" lo apaga y queda solo "¡Salió el número treinta y seis!".
 - **Tablero**: todos los números; el último tiene un aro amarillo. **Historial**: en qué orden y a qué hora salió cada uno; podés copiarlo o compartirlo.
 - **Deshacer** quita el último número (pide confirmación) y vuelve a estar disponible. **Nueva partida** borra todo (pide confirmación).
 - **Ajustes**: rango de números (por defecto 1 a 90), voz y volumen, sonidos, animaciones. Si cambiás el rango con una partida en curso, la app avisa que hay que empezar una nueva.

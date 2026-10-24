@@ -28,7 +28,7 @@ const PROJECTOR_HASH = '#proyector';
 export function App() {
   const [settings, updateSettings] = useSettings();
   const bingo = useBingo({ animationsEnabled: settings.animationsEnabled });
-  const speech = useSpeech({ enabled: settings.voiceEnabled, volume: settings.voiceVolume, voiceURI: settings.voiceURI });
+  const speech = useSpeech({ enabled: settings.voiceEnabled, volume: settings.voiceVolume, voiceURI: settings.voiceURI, repeatDigits: settings.repeatDigits });
   const online = useOnlineStatus();
   const toast = useToast();
 
