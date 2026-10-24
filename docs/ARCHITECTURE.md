@@ -1,6 +1,6 @@
 # Arquitectura
 
-Bingo Escolar es una PWA 100 % cliente: React 18 + Vite + TypeScript estricto + Tailwind 3, sin backend ni servicios externos. El plan técnico original está en [PLAN.md](PLAN.md) y es la fuente de verdad de nombres y contratos; este documento describe cómo quedó implementado y los desvíos.
+Bingo Escolar es una PWA: React 18 + Vite + TypeScript estricto + Tailwind 3. El sorteo es 100 % cliente; desde la v2 un Cloudflare Worker con D1 (`worker/`) atiende solo el acceso pago en `/api/*` (PLAN §12). El plan técnico original está en [PLAN.md](PLAN.md) y es la fuente de verdad de nombres y contratos; este documento describe cómo quedó implementado y los desvíos.
 
 ```
 Navegador
@@ -80,3 +80,12 @@ Pequeños ajustes hechos durante la implementación; ninguno cambia los contrato
 6. **Tipos de `vite/client`** se agregaron a `tsconfig.json` para `import.meta.env`.
 7. **nginx**: además de la CSP del plan se agregan `Cache-Control: immutable` a `/assets/`, `no-cache` a `index.html`, `sw.js` y el manifiesto (cabeceras repetidas por location porque nginx no hereda `add_header` si el location define alguna).
 8. **Dockerfile y `nginx.conf` no se pudieron ejecutar en este entorno** (no hay demonio de Docker): están escritos siguiendo el proyecto de referencia pero **sin probar**. Ver [VERIFICACION.md](VERIFICACION.md).
+
+### Acceso pago (v2, PLAN §12)
+
+9. **Panel con contraseña en vez de Cloudflare Access.** El plan hablado con el dueño proponía proteger `/admin` con Cloudflare Access. Se cambió por una contraseña (`ADMIN_PASSWORD`) y una cookie firmada: Access en `workers.dev` protege el sitio entero (también la app pública) y exige más pasos de configuración.
+10. **`/admin/...` redirige a `/admin`** (el Worker atiende `/admin/*` primero): con `base: './'` las rutas relativas de los assets se romperían bajo una subcarpeta.
+11. **Métodos no permitidos** responden 405 con `datos_invalidos` (no hay un `CodigoError` propio). `POST /api/admin/logout` no exige sesión ni JSON: siempre borra la cookie.
+12. **Intentos fallidos de activación**: cuentan solo el código mal formado (400) y el inexistente (404); vencido, revocado y sin dispositivos no cuentan. En el login, el bloqueo se revisa antes de comparar la contraseña.
+13. **Alta de dispositivo atómica**: un solo `INSERT ... WHERE (SELECT COUNT(*)) < max`, sin carrera entre dos activaciones simultáneas.
+14. **App**: un permiso con firma o dispositivo incorrecto se descarta al abrir sin ir a la red; uno vencido igual intenta renovarse (puede haberse extendido); la renovación se reintenta con el evento `online`. "Quitar acceso de este dispositivo" no avisa al servidor: el lugar se libera desde el panel.

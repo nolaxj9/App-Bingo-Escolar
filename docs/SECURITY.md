@@ -1,6 +1,6 @@
 # Seguridad
 
-Revisión hecha el 23/10/2026. Bingo Escolar es una página estática sin servidor propio, sin cuentas, sin datos personales y sin conexión a servicios externos: la superficie de ataque es chica, pero se revisó completa.
+Revisión hecha el 23/10/2026. Bingo Escolar era una página estática sin servidor propio; desde la v2 tiene una API chica para el acceso pago (ver "Acceso pago" abajo). El sorteo sigue sin cuentas ni servicios externos.
 
 ## Modelo de amenazas
 
@@ -29,6 +29,20 @@ Fuera de alcance: alguien con acceso físico al celular puede editar el almacena
 **Service worker.** Solo atiende pedidos `GET` del mismo origen; guarda únicamente la lista fija de archivos del build (no guarda respuestas arbitrarias, así no se puede "envenenar" la caché); cada versión tiene su caché y borra las anteriores; nunca toca `localStorage`. No guarda `_headers` ni respuestas redirigidas.
 
 **Dependencias.** Versiones exactas con `package-lock.json` y `npm ci`. Sin dependencias de terceros en tiempo de ejecución salvo React, lucide-react y las fuentes.
+
+## Acceso pago (v2, 24/10/2026)
+
+| Qué se protege | Control |
+|---|---|
+| Que no se adivinen códigos | 12 símbolos de un alfabeto de 31 (≈ 59 bits) con `crypto.getRandomValues` sin sesgo; 10 intentos fallidos por IP cada 15 min |
+| Que una base filtrada no exponga códigos | Solo se guarda el SHA-256 del código y sus últimos 4 caracteres; se muestra una sola vez al crearlo |
+| Que no se fabriquen permisos | Permiso firmado con ECDSA P-256; la clave privada vive solo como secreto de Cloudflare (`LICENSE_PRIVATE_KEY`), la app trae solo la pública |
+| Que un código no se reparta sin límite | Máximo de dispositivos por licencia (3 por defecto), alta atómica; revocar o liberar dispositivos invalida la próxima renovación |
+| El panel | Contraseña de 12+ caracteres comparada en tiempo constante; 5 intentos por IP cada 15 min; cookie HttpOnly, Secure, SameSite=Strict, `Path=/api/admin`, firmada con HMAC, 12 h; cambios solo con `Content-Type: application/json` (CSRF) |
+| La API | Cuerpos ≤ 4 KB, validación de cada campo, `Cache-Control: no-store`, `nosniff`; errores sin detalles internos; el service worker no guarda `/api/` |
+| XSS desde datos del panel | Los textos (entidad, "cómo comprar") se muestran como texto con React, nunca como HTML |
+
+Riesgo aceptado: sin Internet no se puede revocar en el acto (el permiso vale hasta su vencimiento), y quien tenga el dispositivo y conocimientos técnicos puede modificar la app en su navegador. Para una licencia de USD 5 es razonable.
 
 ## Resultados de la revisión (ejecutado)
 

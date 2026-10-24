@@ -1,6 +1,6 @@
 # Bingo Escolar
 
-Aplicación web **sin conexión** (PWA) para sacar los números del bingo en el aula: una bolilla enorme en pantalla, un botón grande para sacar el número, tablero, historial, voz que canta el número y modo proyector. Todo corre en el navegador del celular, la tablet o la computadora; no hay servidor ni cuentas.
+Aplicación web **sin conexión** (PWA) para sacar los números del bingo en el aula: una bolilla enorme en pantalla, un botón grande para sacar el número, tablero, historial, voz que canta el número y modo proyector. El sorteo corre entero en el navegador del celular, la tablet o la computadora, también sin Internet. Las entidades que la alquilan (USD 5, 30 días) activan un código una vez; sin código funciona como demo de 15 bolillas por partida.
 
 > ## Aviso importante
 >
@@ -23,6 +23,7 @@ Aplicación web **sin conexión** (PWA) para sacar los números del bingo en el 
 - **Sin Internet**: manifiesto, service worker propio y caché de todos los archivos; se instala como app en Android, iPhone y escritorio.
 - **Firma**: "by Código Austral · 2026" discreta en la pantalla principal, el modo proyector (esquina inferior), Ajustes ("Acerca de") y al final del historial copiado; sale de una sola constante en `src/services/brand.ts`.
 - **Ajustes**: rango (cambiarlo con una partida en curso pide confirmación porque empieza una nueva), voz, sonidos, animaciones, modo proyector y estado "Lista para usar sin Internet".
+- **Acceso pago** ([docs/ACCESO-PAGO.md](docs/ACCESO-PAGO.md)): demo de 15 bolillas por partida; código de 30 días y 3 dispositivos que se activa una vez y sigue andando sin Internet (permiso firmado con ECDSA); panel `/admin` para crear, extender, revocar y liberar códigos. API en un Cloudflare Worker con D1 (`worker/`).
 - **Pruebas automatizadas**: unitarias (Vitest + Testing Library) y recorrido completo en Chromium real con Playwright, incluido el modo sin conexión.
 
 ## Requisitos
@@ -96,6 +97,7 @@ bingo-escolar/
 - [docs/USO.md](docs/USO.md): cómo correrla, probarla desde el celular, instalarla, usarla sin Internet, modo proyector y publicarla.
 - [docs/VERIFICACION.md](docs/VERIFICACION.md): qué se ejecutó y qué resultados se observaron.
 - [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md): errores frecuentes y soluciones.
+- [docs/ACCESO-PAGO.md](docs/ACCESO-PAGO.md): acceso pago para entidades, cómo configurar Cloudflare y cómo vender un código.
 - [docs/SECURITY.md](docs/SECURITY.md): modelo de amenazas, controles, resultados de la revisión de seguridad y riesgos residuales.
 
 ## Limitaciones
@@ -104,4 +106,5 @@ bingo-escolar/
 - **El modo proyector en otro dispositivo no se sincroniza**: cada dispositivo guarda su propia partida. Sirve la misma pestaña/PC (ventana aparte con `#proyector`, que se actualiza sola) o espejar la pantalla (cable, Chromecast, "compartir pantalla").
 - **El uso sin Internet hay que verificarlo en el navegador de destino**: se probó en Chromium. Necesita HTTPS o `localhost` y una primera carga con conexión; Safari puede borrar los datos de un sitio que no se usa durante días.
 - Sin modo "sincronizar entre aulas", sin cartones de bingo ni verificación de líneas: solo sortea números.
-- Si se borran los datos del sitio en el navegador, se pierde la partida guardada (no hay copia en ningún servidor).
+- Si se borran los datos del sitio en el navegador, se pierde la partida guardada (no hay copia en ningún servidor) y hay que volver a activar el código.
+- **El acceso pago solo funciona publicada en Cloudflare Workers.** En GitHub Pages, Netlify o Docker no hay API y la app queda en demo.

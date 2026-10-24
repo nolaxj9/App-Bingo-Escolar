@@ -1,11 +1,25 @@
-// Cloudflare Workers con archivos estáticos: publica dist/ tal cual, sin código de servidor.
+// Cloudflare Workers: sirve dist/ como archivos estáticos y atiende la API de acceso pago en /api/* (worker/).
+// Antes de desplegar: crear la base con `npx wrangler d1 create bingo-escolar` y reemplazar el
+// database_id de abajo por el real. Las tablas se crean solas en el primer pedido.
+// Secretos (npx wrangler secret put ...): LICENSE_PRIVATE_KEY (JWK JSON) y ADMIN_PASSWORD (12+ caracteres).
 // Uso: npm run build && npx wrangler deploy
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "bingo-escolar",
   "compatibility_date": "2026-10-01",
+  "main": "worker/index.ts",
   "assets": {
     "directory": "./dist",
-    "not_found_handling": "single-page-application"
-  }
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/admin/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "bingo-escolar",
+      // PENDIENTE: poné acá el id real que imprime `wrangler d1 create` antes de desplegar.
+      "database_id": "PENDIENTE-CREAR-EN-CLOUDFLARE"
+    }
+  ]
 }

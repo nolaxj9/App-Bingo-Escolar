@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { PartyPopper, RotateCcw, Undo2 } from 'lucide-react';
+import { KeyRound, PartyPopper, RotateCcw, Undo2 } from 'lucide-react';
 import type { NumberRange } from './types/bingo';
+import { DEMO_MAX_BOLILLAS } from './shared/licencia';
 import { useBingo } from './hooks/useBingo';
 import { useSettings } from './hooks/useSettings';
 import { useSpeech } from './hooks/useSpeech';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
+import { useLicencia } from './hooks/useLicencia';
 import { useToast } from './context/ToastContext';
 import { playFinish, playPop, playUndo, unlockAudio } from './services/sound';
 import { Header } from './components/Header';
@@ -20,6 +22,8 @@ import { ProjectorView } from './components/ProjectorView';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import { Ball } from './components/Ball';
 import { BrandCredit } from './components/BrandCredit';
+import { DemoAviso } from './components/DemoAviso';
+import { Activacion } from './components/Activacion';
 
 type Pending = { kind: 'undo' } | { kind: 'reset' } | { kind: 'range'; range: NumberRange } | null;
 
@@ -31,16 +35,27 @@ export function App() {
   const speech = useSpeech({ enabled: settings.voiceEnabled, volume: settings.voiceVolume, voiceURI: settings.voiceURI });
   const online = useOnlineStatus();
   const toast = useToast();
+  const licencia = useLicencia();
 
   const [view, setView] = useState<View>('sorteo');
   const [projector, setProjector] = useState(() => window.location.hash === PROJECTOR_HASH);
   const [pending, setPending] = useState<Pending>(null);
   const [liveText, setLiveText] = useState('');
+  const [activando, setActivando] = useState(false);
   const usedFullscreen = useRef(false);
 
   const { game, status, current, drawnCount, remaining, total, isDrawing } = bingo;
 
+  // Sin acceso completo (demo, o todavía verificando) se sortean como máximo DEMO_MAX_BOLILLAS por partida.
+  // El límite se aplica acá y no en el motor: también cubre la barra espaciadora del proyector.
+  const sinAcceso = licencia.modo !== 'completo';
+  const limiteAlcanzado = sinAcceso && drawnCount >= DEMO_MAX_BOLILLAS;
+  const demo = licencia.modo === 'demo';
+  const demoLimite = demo && limiteAlcanzado;
+  const abrirActivacion = useCallback(() => setActivando(true), []);
+
   const handleDraw = useCallback(() => {
+    if (limiteAlcanzado) return;
     const n = bingo.draw();
     if (n === null) return;
     unlockAudio();
@@ -50,7 +65,7 @@ export function App() {
     }
     speech.announce(n);
     setLiveText(`Salió el ${n}`);
-  }, [bingo, settings.soundEnabled, speech]);
+  }, [bingo, limiteAlcanzado, settings.soundEnabled, speech]);
 
   // ---------- Modo proyector ----------
   const enterProjector = useCallback(() => {
@@ -152,6 +167,7 @@ export function App() {
             </p>
           )}
           <GameStats drawn={drawnCount} remaining={remaining} total={total} />
+          {demo && <DemoAviso restantes={Math.max(0, DEMO_MAX_BOLILLAS - drawnCount)} onActivar={abrirActivacion} />}
           {previous.length > 0 && (
             <div className="flex items-center gap-2 [@media(max-height:650px)]:hidden" data-testid="previous">
               <span className="text-sm font-bold text-slate-700">Antes:</span>
@@ -166,7 +182,18 @@ export function App() {
           )}
         </div>
         <div className="sticky bottom-0 flex flex-col gap-2 bg-gradient-to-t from-cream via-cream to-cream/80 px-4 pb-3 pt-2 lg:static lg:bg-none lg:px-4">
-          <DrawButton status={status} busy={isDrawing} onDraw={handleDraw} />
+          {demoLimite && status !== 'finished' ? (
+            <button
+              type="button"
+              onClick={abrirActivacion}
+              className="flex min-h-[76px] w-full items-center justify-center gap-3 rounded-[28px] bg-accent-400 px-4 py-2 text-center font-display text-xl font-extrabold uppercase leading-tight tracking-wide text-ink shadow-lift transition duration-150 hover:bg-accent-500 active:scale-[0.97] min-[420px]:text-2xl"
+            >
+              <KeyRound className="h-8 w-8 shrink-0" aria-hidden="true" />
+              Activar acceso completo
+            </button>
+          ) : (
+            <DrawButton status={status} busy={isDrawing} onDraw={handleDraw} />
+          )}
           <div className="grid grid-cols-2 gap-2">
             <button type="button" className="btn-secondary whitespace-nowrap px-2 text-base" disabled={drawnCount === 0} onClick={() => setPending({ kind: 'undo' })}>
               <Undo2 className="h-5 w-5" aria-hidden="true" /> Deshacer
@@ -220,6 +247,8 @@ export function App() {
               drawnCount={drawnCount}
               onApplyRange={applyRange}
               onProjector={enterProjector}
+              licencia={licencia}
+              onActivar={abrirActivacion}
             />
           )}
         </main>
@@ -238,11 +267,15 @@ export function App() {
           total={total}
           animations={settings.animationsEnabled}
           busy={isDrawing}
+          demo={demo}
+          limiteDemo={demoLimite}
           onDraw={handleDraw}
+          onActivar={abrirActivacion}
           onExit={exitProjector}
         />
       )}
 
+      <Activacion open={activando} onClose={() => setActivando(false)} licencia={licencia} />
       <ConfirmDialog
         open={pending?.kind === 'undo'}
         title="¿Deshacer el último número?"

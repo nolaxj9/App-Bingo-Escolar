@@ -259,3 +259,104 @@ sortea; sin errores de consola. El script imprime un resumen PASS/FAIL y sale �
 - El service worker requiere HTTPS o `localhost`. Para probar desde el celular en la red local,
   `npm run dev -- --host` sirve para usar la app, pero la instalación offline necesita HTTPS
   (documentar en USO.md).
+
+## 12. Acceso pago para entidades (v2, fase 1: códigos manuales)
+
+Decidido con el dueño el 24/10/2026: USD 5 = **30 días** de acceso; **modo demo gratis** limitado;
+**3 dispositivos** por código; códigos **creados a mano** desde un panel (la entidad paga por
+Mercado Pago o transferencia y recibe el código por WhatsApp). Fase 2 (Checkout Pro de Mercado
+Pago con webhook) queda fuera de este cambio. Se vende una licencia de uso del software: la app
+sigue sin manejar apuestas, dinero ni premios.
+
+### 12.1 Piezas
+
+```
+src/shared/licencia.ts      contrato compartido (constantes, códigos, permiso firmado, tipos de la API) — ya escrito
+src/shared/clavePublica.ts  clave pública ECDSA P-256 de producción (la privada solo en Cloudflare)
+worker/                     Cloudflare Worker: API en /api/*; el resto lo sirven los assets como hoy
+  index.ts                  router (fetch handler), respuestas JSON, cabeceras de seguridad
+  db.ts                     esquema (CREATE TABLE IF NOT EXISTS al primer uso) + consultas
+  admin.ts                  sesión del panel (cookie firmada con HMAC)
+  limites.ts                límite de intentos por IP
+  d1.ts                     tipos mínimos de D1 (sin dependencias nuevas)
+  __tests__/                Vitest en entorno node, D1 falso sobre node:sqlite
+src/services/licencia.ts    id de dispositivo, guardar/leer permiso, verificar offline, activar/renovar
+src/hooks/useLicencia.ts    estado { modo: 'cargando'|'demo'|'completo', entidad, vence, ... }
+src/components/Activacion.tsx   pantalla/diálogo "Activar acceso completo" + "Cómo comprar"
+src/components/DemoAviso.tsx    aviso de demo (bolillas restantes) y cartel "DEMO" en el proyector
+src/admin/                  panel de administración (se carga con import() solo en /admin)
+```
+
+`wrangler.jsonc`: `main: "worker/index.ts"`, `assets.binding: "ASSETS"`,
+`assets.run_worker_first: ["/api/*"]`, D1 `binding: "DB"`. Secretos: `LICENSE_PRIVATE_KEY` (JWK
+JSON de la clave privada), `ADMIN_PASSWORD` (≥ 12 caracteres). Si falta alguno, la API responde
+`503 no_configurado` y la app sigue en demo (nunca se rompe el sorteo).
+
+### 12.2 Base D1 (se crea sola con `CREATE TABLE IF NOT EXISTS`)
+
+```sql
+licencias(id TEXT PK, entidad TEXT, contacto TEXT, notas TEXT, codigo_hash TEXT UNIQUE,
+          codigo_final TEXT, creada INTEGER, vence INTEGER, max_dispositivos INTEGER,
+          revocada INTEGER NULL, monto_ars INTEGER NULL)
+dispositivos(licencia_id TEXT, dispositivo TEXT, primera INTEGER, ultima INTEGER,
+             PRIMARY KEY(licencia_id, dispositivo))
+intentos(clave TEXT PK, ventana INTEGER, cantidad INTEGER)
+ajustes(clave TEXT PK, valor TEXT)       -- precioArs, comoComprar, whatsapp
+```
+
+Tiempos en ms desde epoch. El código nunca se guarda: solo `hashCodigo()` y los últimos 4.
+
+### 12.3 API (JSON; errores `ApiError` con los códigos HTTP de `CodigoError`)
+
+| Método y ruta | Qué hace |
+|---|---|
+| `GET /api/info` | `InfoPublica` (precio, cómo comprar, WhatsApp, 30 días) |
+| `POST /api/activar` `ActivarPedido` | normaliza y hashea el código; 404 si no existe, 403 revocado, 410 vencido; registra el dispositivo (si ya estaba, ok; si hay `max_dispositivos` distintos, 409); responde `PermisoRespuesta` con permiso firmado `exp = vence` |
+| `POST /api/renovar` `RenovarPedido` | verifica la firma (sin exigir que no esté vencido), relee la licencia: si se extendió devuelve permiso nuevo; 403 si se revocó o se liberaron sus dispositivos, 410 si venció |
+| `POST /api/admin/login` `{password}` | compara en tiempo constante; cookie `bingo_admin` HttpOnly, Secure, SameSite=Strict, Path=/api/admin, 12 h, firmada HMAC con una clave derivada de `ADMIN_PASSWORD` |
+| `POST /api/admin/logout` | borra la cookie |
+| `GET /api/admin/licencias` | `LicenciaAdmin[]` (más nuevas primero) |
+| `POST /api/admin/licencias` `CrearLicenciaPedido` | crea con código nuevo → `LicenciaConCodigo` (el código se ve una sola vez) |
+| `POST /api/admin/licencias/:id/extender` `{dias}` | `vence = max(vence, ahora) + dias` |
+| `POST /api/admin/licencias/:id/revocar` y `/reactivar` | marca/desmarca `revocada` |
+| `POST /api/admin/licencias/:id/liberar-dispositivos` | borra sus dispositivos |
+| `POST /api/admin/licencias/:id/regenerar-codigo` | código nuevo (el viejo deja de servir) → `LicenciaConCodigo` |
+| `GET` / `PUT /api/admin/ajustes` | `Ajustes` |
+
+Límites: activar 10 intentos fallidos por IP cada 15 min (429); login 5 por IP cada 15 min.
+La IP sale de `CF-Connecting-IP` y se guarda hasheada. Cuerpos > 4 KB → 400. Las rutas
+`/api/admin/*` con métodos que cambian datos exigen `Content-Type: application/json` (protección
+CSRF junto con SameSite=Strict). Todas las respuestas de la API: `Cache-Control: no-store`.
+
+### 12.4 App
+
+- `bingo-escolar:dispositivo`: UUID (`crypto.randomUUID`) creado una vez. `bingo-escolar:permiso`:
+  el token. Se borran con "Quitar acceso de este dispositivo" en Ajustes.
+- Al abrir: verifica el permiso **offline** con la clave pública (firma, dispositivo, vencimiento).
+  Válido → modo completo. Si hay Internet, llama a `/api/renovar` en segundo plano (refleja
+  extensiones y revocaciones). Un error de red nunca quita el acceso; solo 403/410 lo quitan.
+- **Demo**: sin permiso válido se pueden sacar `DEMO_MAX_BOLILLAS` (15) números por partida. Se
+  ve un aviso "Versión demo: te quedan N bolillas" y en el proyector un cartel "DEMO". Al llegar al
+  límite, el botón de sacar se reemplaza por "Activar acceso completo". Deshacer y nueva partida
+  siguen andando. El límite se aplica en `App`, no en el motor.
+- Pantalla de activación: campo de código (acepta minúsculas, espacios y guiones), mensajes claros
+  por cada error, sección "Cómo comprar" con precio, texto y botón de WhatsApp (de `/api/info`).
+  Sin Internet: "Para activar necesitás Internet una sola vez".
+- Ajustes muestra "Acceso completo · {entidad} · vence el {fecha}" y avisa cuando faltan ≤ 5 días.
+- `/admin`: se detecta por `location.pathname` en `main.tsx` y se carga `src/admin/` con
+  `import()`. Login con contraseña, lista de licencias con estado, crear (entidad, contacto, notas,
+  días = 30, dispositivos = 3, monto), y acciones extender/revocar/reactivar/liberar/regenerar.
+  Al crear muestra el código grande con botones "Copiar" y "Mandar por WhatsApp".
+- El service worker nunca cachea `/api/*` (ya ignora lo que no es GET; además se excluye `/api/`).
+
+### 12.5 Pruebas
+
+- Unitarias: `src/shared/licencia` (códigos, normalizar, firmar/verificar, firma alterada,
+  dispositivo distinto, vencido); Worker con D1 falso (cada endpoint y cada error, límite de
+  intentos, cookie de admin, 503 sin secretos); `useLicencia`/App (demo corta en 15, activar
+  desbloquea, permiso vencido vuelve a demo, error de red no quita acceso).
+- E2E: con `E2E_SERVER=cloudflare` (`wrangler dev` con D1 local y `.dev.vars` de prueba
+  generado por el script): crear licencia desde `/admin`, activarla en otro contexto, sortear más de
+  15, cortar Internet, recargar y seguir en modo completo. Con `vite preview` (sin API) los pasos
+  existentes usan un permiso firmado por el script con una clave de prueba
+  (`VITE_LICENSE_PUBLIC_KEY` en el build de e2e).
