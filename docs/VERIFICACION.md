@@ -81,7 +81,7 @@ Resultados reales de esta corrida:
 Detalle en [SECURITY.md](SECURITY.md). Ejecutado: `npm audit` antes 6 (3 altas, 3 moderadas, solo desarrollo) y después **0**; `npx vitest run` **112 passed**; `npx tsc --noEmit` sin errores; `npm run e2e:cloudflare` **58/58 PASS** y `npm run e2e` **58/58 PASS** con las cabeceras nuevas; sondeo en Chromium contra `wrangler dev`: script inyectado, `fetch` externo, imagen externa e iframe de otro sitio bloqueados.
 
 ## Voz: repetir el número cifra por cifra (24/10/2026)
-Rama `voz-cifra-por-cifra`. Ejemplos de texto hablado: 7 → "¡Salió el número siete! El siete solo."; 36 → "¡Salió el número treinta y seis! Tres, seis."; 105 → "¡Salió el número ciento cinco! Uno, cero, cinco." Con "Repetir cifra por cifra" apagado queda "¡Salió el número cuarenta y dos!". La velocidad baja de 0,95 a 0,9 solo al repetir; el sorteo no espera a la voz.
+Rama `voz-cifra-por-cifra`. Ejemplos de texto hablado: 7 → "¡Salió el número siete! Siete."; 36 → "¡Salió el número treinta y seis! Tres, seis."; 105 → "¡Salió el número ciento cinco! Uno, cero, cinco." Con "Repetir cifra por cifra" apagado queda "¡Salió el número cuarenta y dos!". La velocidad queda en 0,95 (la original); el sorteo no espera a la voz.
 Resultados reales de esta corrida:
 - `npx vitest run`: `Test Files 7 passed (7)`, `Tests 122 passed (122)` (nuevas: `announcementText` para 7, 10, 36, 42, 90, 100, 105 y sin repetición; ajuste `repeatDigits` por defecto con ajustes viejos; en la App, al salir el 36 se dice "Tres, seis", y con la opción apagada solo el número).
 - `npx tsc --noEmit`: sin errores. `npm run build`: correcto.

@@ -25,12 +25,12 @@ export function numberToWords(n: number): string {
 
 /**
  * Texto que se lee al salir un número. Con `repeatDigits` lo repite cifra por cifra, como el cantor de bingo:
- * "¡Salió el número treinta y seis! Tres, seis." / "¡Salió el número siete! El siete solo."
+ * "¡Salió el número treinta y seis! Tres, seis." / "¡Salió el número siete! Siete."
  */
 export function announcementText(n: number, repeatDigits: boolean): string {
   const base = `¡Salió el número ${numberToWords(n)}!`;
   if (!repeatDigits || !Number.isInteger(n) || n < 0 || n > 999) return base;
-  if (n < 10) return `${base} El ${numberToWords(n)} solo.`;
+  if (n < 10) return `${base} ${numberToWords(n).charAt(0).toUpperCase()}${numberToWords(n).slice(1)}.`;
   const digits = String(n).split('').map((d) => numberToWords(Number(d))).join(', ');
   return `${base} ${digits.charAt(0).toUpperCase()}${digits.slice(1)}.`;
 }

@@ -23,7 +23,7 @@ describe('numberToWords', () => {
 
 describe('announcementText', () => {
   it.each([
-    [7, '¡Salió el número siete! El siete solo.'],
+    [7, '¡Salió el número siete! Siete.'],
     [10, '¡Salió el número diez! Uno, cero.'],
     [36, '¡Salió el número treinta y seis! Tres, seis.'],
     [42, '¡Salió el número cuarenta y dos! Cuatro, dos.'],
